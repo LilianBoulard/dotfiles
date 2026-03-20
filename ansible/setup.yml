@@ -3,10 +3,16 @@
   hosts: localhost
   connection: local
 
-  vars:
-    is_desktop: "{{ 'XDG_SESSION_TYPE' in ansible_env }}"
-
   tasks:
+    - name: Detect desktop environment
+      ansible.builtin.command: systemctl get-default
+      register: systemd_target
+      changed_when: false
+
+    - name: Set is_desktop fact
+      ansible.builtin.set_fact:
+        is_desktop: "{{ systemd_target.stdout == 'graphical.target' }}"
+
     # ── Common packages ──────────────────────────────────────
     - name: Install zsh and tmux
       become: true
