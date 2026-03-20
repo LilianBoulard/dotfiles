@@ -4,11 +4,6 @@
   connection: local
 
   tasks:
-    - name: Detect desktop environment
-      ansible.builtin.command: systemctl get-default
-      register: systemd_target
-      changed_when: false
-
     # ── Common packages ──────────────────────────────────────
     - name: Install zsh and tmux
       become: true
@@ -53,7 +48,7 @@
           - keepassxc
           - alacritty
         state: present
-      when: systemd_target.stdout == 'graphical.target'
+      when: ansible_env.XDG_SESSION_TYPE | default('') in ['x11', 'wayland']
 
     - name: Add Brave browser GPG key
       become: true
@@ -61,7 +56,7 @@
         url: https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
         dest: /usr/share/keyrings/brave-browser-archive-keyring.gpg
         mode: "0644"
-      when: systemd_target.stdout == 'graphical.target'
+      when: ansible_env.XDG_SESSION_TYPE | default('') in ['x11', 'wayland']
 
     - name: Add Brave browser APT repository
       become: true
@@ -69,7 +64,7 @@
         repo: "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"
         filename: brave-browser
         state: present
-      when: systemd_target.stdout == 'graphical.target'
+      when: ansible_env.XDG_SESSION_TYPE | default('') in ['x11', 'wayland']
 
     - name: Install Brave browser
       become: true
@@ -77,4 +72,4 @@
         name: brave-browser
         state: present
         update_cache: true
-      when: systemd_target.stdout == 'graphical.target'
+      when: ansible_env.XDG_SESSION_TYPE | default('') in ['x11', 'wayland']
