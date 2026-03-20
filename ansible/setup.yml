@@ -9,10 +9,6 @@
       register: systemd_target
       changed_when: false
 
-    - name: Set is_desktop fact
-      ansible.builtin.set_fact:
-        is_desktop: "{{ systemd_target.stdout == 'graphical.target' }}"
-
     # ── Common packages ──────────────────────────────────────
     - name: Install zsh and tmux
       become: true
@@ -57,7 +53,7 @@
           - keepassxc
           - alacritty
         state: present
-      when: is_desktop
+      when: systemd_target.stdout == 'graphical.target'
 
     - name: Add Brave browser GPG key
       become: true
@@ -65,7 +61,7 @@
         url: https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
         dest: /usr/share/keyrings/brave-browser-archive-keyring.gpg
         mode: "0644"
-      when: is_desktop
+      when: systemd_target.stdout == 'graphical.target'
 
     - name: Add Brave browser APT repository
       become: true
@@ -73,7 +69,7 @@
         repo: "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"
         filename: brave-browser
         state: present
-      when: is_desktop
+      when: systemd_target.stdout == 'graphical.target'
 
     - name: Install Brave browser
       become: true
@@ -81,4 +77,4 @@
         name: brave-browser
         state: present
         update_cache: true
-      when: is_desktop
+      when: systemd_target.stdout == 'graphical.target'
