@@ -1,0 +1,78 @@
+---
+- name: Setup workstation
+  hosts: localhost
+  connection: local
+
+  vars:
+    is_desktop: "{{ ansible_env.XDG_SESSION_TYPE is defined }}"
+
+  tasks:
+    # ── Common packages ──────────────────────────────────────
+    - name: Install zsh and tmux
+      become: true
+      ansible.builtin.apt:
+        name:
+          - zsh
+          - tmux
+          - git
+          - curl
+        state: present
+        update_cache: true
+
+    - name: Check if Oh My Zsh is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.oh-my-zsh"
+      register: omz
+
+    - name: Install Oh My Zsh
+      ansible.builtin.git:
+        repo: https://github.com/ohmyzsh/ohmyzsh.git
+        dest: "{{ ansible_env.HOME }}/.oh-my-zsh"
+        depth: 1
+      when: not omz.stat.exists
+
+    - name: Check if TPM is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+      register: tpm
+
+    - name: Install TPM (Tmux Plugin Manager)
+      ansible.builtin.git:
+        repo: https://github.com/tmux-plugins/tpm.git
+        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+        depth: 1
+      when: not tpm.stat.exists
+
+    # ── Desktop-only packages (Ubuntu) ───────────────────────
+    - name: Install KeepassXC and Alacritty
+      become: true
+      ansible.builtin.apt:
+        name:
+          - keepassxc
+          - alacritty
+        state: present
+      when: is_desktop
+
+    - name: Add Brave browser GPG key
+      become: true
+      ansible.builtin.get_url:
+        url: https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+        dest: /usr/share/keyrings/brave-browser-archive-keyring.gpg
+        mode: "0644"
+      when: is_desktop
+
+    - name: Add Brave browser APT repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"
+        filename: brave-browser
+        state: present
+      when: is_desktop
+
+    - name: Install Brave browser
+      become: true
+      ansible.builtin.apt:
+        name: brave-browser
+        state: present
+        update_cache: true
+      when: is_desktop
