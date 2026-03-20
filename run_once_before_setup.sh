@@ -7,5 +7,5 @@ if ! command -v ansible-playbook &>/dev/null; then
 fi
 
 # Run the playbook
-ansible-playbook -i localhost, -c local \
+ansible-playbook -i localhost, -c local --ask-become-pass \
     "${CHEZMOI_SOURCE_DIR}/ansible/setup.yml"
