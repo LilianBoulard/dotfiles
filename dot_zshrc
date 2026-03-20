@@ -29,15 +29,33 @@ else
   export EDITOR='nano'
 fi
 
+# Aliases
 alias cc="claude"
 alias ccp="claude --dangerously-skip-permissions"
 alias c="clear"
 alias e="exit"
 alias g="git"
+alias ga="git add"
+alias gc="git commit"
+alias gc="git diff"
+alias gcp="git cherry-pick"
 alias gpl="git pull"
 alias gpu="git push"
+alias gs="git status"
 alias j="just"
+alias k="kubectl"
+alias kl="kubectl logs -f"
+alias kg="kubectl get"
+alias kgp="kubectl get pods"
+alias l="ls -lah"
+alias q="exit"
+
+export USER_ID=$(id -u)
+export GROUP_ID=$(id -g)
 
 export PATH="$HOME/.local/bin:$PATH"
+
+[[ -f ~/.kube/config ]] && export KUBECONFIG=~/.kube/config
+[[ $commands[kubectl] ]] && source <(kubectl completion zsh)
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
