@@ -11,7 +11,6 @@
           - zsh
           - tmux
           - git
-          - curl
           - tree
         state: present
         update_cache: true
