@@ -14,6 +14,12 @@
         state: present
         update_cache: true
 
+    - name: Set zsh as default shell
+      become: true
+      ansible.builtin.user:
+        name: "{{ ansible_env.USER }}"
+        shell: /usr/bin/zsh
+
     - name: Check if Oh My Zsh is installed
       ansible.builtin.stat:
         path: "{{ ansible_env.HOME }}/.oh-my-zsh"
