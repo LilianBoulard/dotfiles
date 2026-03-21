@@ -4,7 +4,7 @@
   connection: local
 
   tasks:
-    # ── Common packages ──────────────────────────────────────
+    # Common packages
     - name: Install zsh and tmux
       become: true
       ansible.builtin.apt:
@@ -40,7 +40,18 @@
         depth: 1
       when: not tpm.stat.exists
 
-    # ── Desktop-only packages (Ubuntu) ───────────────────────
+    # Claude Code
+    - name: Check if Claude Code is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.local/bin/claude"
+      register: claude_code
+
+    - name: Install Claude Code
+      ansible.builtin.shell:
+        cmd: curl -fsSL https://claude.ai/install.sh | bash
+      when: not claude_code.stat.exists
+
+    # Desktop-only packages
     - name: Install KeepassXC and Alacritty
       become: true
       ansible.builtin.apt:
@@ -48,6 +59,13 @@
           - keepassxc
           - alacritty
         state: present
+      when: ansible_env.XDG_SESSION_TYPE | default('') in ['x11', 'wayland']
+
+    - name: Set Alacritty as default terminal emulator
+      become: true
+      community.general.alternatives:
+        name: x-terminal-emulator
+        path: /usr/bin/alacritty
       when: ansible_env.XDG_SESSION_TYPE | default('') in ['x11', 'wayland']
 
     - name: Add Brave browser GPG key
