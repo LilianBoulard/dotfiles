@@ -2,6 +2,8 @@
 
 Managed with [chezmoi](https://www.chezmoi.io/).
 
+Designed for Ubuntu Desktop 24.04 and Ubuntu Server 24.04.
+
 ## Install
 
 ```sh
