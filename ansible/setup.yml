@@ -4,8 +4,7 @@
   connection: local
 
   tasks:
-    # Common packages
-    - name: Install zsh and tmux
+    - name: Install common packages
       become: true
       ansible.builtin.apt:
         name:
@@ -13,6 +12,7 @@
           - tmux
           - git
           - curl
+          - tree
         state: present
         update_cache: true
 
