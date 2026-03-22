@@ -11,6 +11,7 @@
           - zsh
           - tmux
           - tree
+          - unzip
         state: present
         update_cache: true
 
@@ -43,6 +44,17 @@
         dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
         depth: 1
       when: not tpm.stat.exists
+
+    # Bun
+    - name: Check if Bun is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.bun/bin/bun"
+      register: bun
+
+    - name: Install Bun
+      ansible.builtin.shell:
+        cmd: curl -fsSL https://bun.com/install | bash
+      when: not bun.stat.exists
 
     # Claude Code
     - name: Check if Claude Code is installed
