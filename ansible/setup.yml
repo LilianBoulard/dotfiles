@@ -54,6 +54,7 @@
     - name: Install Bun
       ansible.builtin.shell:
         cmd: curl -fsSL https://bun.com/install | bash
+        warn: false
       when: not bun.stat.exists
 
     # Claude Code
