@@ -30,8 +30,7 @@ else
 fi
 
 # Aliases
-alias cc="claude"
-alias ccp="claude --dangerously-skip-permissions"
+alias cc="claude --allow-dangerously-skip-permissions"
 alias c="clear"
 alias e="exit"
 alias g="git"
