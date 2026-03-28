@@ -54,8 +54,18 @@
     - name: Install Bun
       ansible.builtin.shell:
         cmd: curl -fsSL https://bun.com/install | bash
-        warn: false
       when: not bun.stat.exists
+
+    # uv
+    - name: Check if uv is installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.local/bin/uv"
+      register: uv
+
+    - name: Install uv
+      ansible.builtin.shell:
+        cmd: curl -LsSf https://astral.sh/uv/install.sh | sh
+      when: not uv.stat.exists
 
     # Claude Code
     - name: Check if Claude Code is installed
