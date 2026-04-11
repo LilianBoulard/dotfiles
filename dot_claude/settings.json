@@ -9,5 +9,17 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '\\a' > /dev/tty 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
   }
 }

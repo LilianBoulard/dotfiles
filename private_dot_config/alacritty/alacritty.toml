@@ -5,3 +5,7 @@ TERM = "xterm-256color"
 key = "Return"
 mods = "Shift"
 chars = "\u001B\r"
+
+[bell]
+command = { program = "canberra-gtk-play", args = ["-i", "complete"] }
+duration = 0
