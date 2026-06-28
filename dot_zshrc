@@ -55,9 +55,9 @@ alias q="exit"
 export USER_ID=$(id -u)
 export GROUP_ID=$(id -g)
 
-export PATH="$HOME/.local/bin:$PATH"
+export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 
-[[ -f ~/.kube/config ]] && export KUBECONFIG=~/.kube/config
+# KUBECONFIG and PATH live in ~/.zshenv so non-interactive shells get them too.
 [[ $commands[kubectl] ]] && source <(kubectl completion zsh)
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
