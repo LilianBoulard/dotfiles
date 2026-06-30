@@ -12,10 +12,6 @@ plugins=(git tmux)
 
 source $ZSH/oh-my-zsh.sh
 
-# Silence spurious BELs from ZLE/completion/history so Alacritty's bell.command
-# only fires for BELs we actually want (e.g. Claude Code Stop hook).
-unsetopt BEEP LIST_BEEP HIST_BEEP
-
 # History (shared across tmux panes)
 HISTSIZE=50000
 SAVEHIST=50000
@@ -55,9 +51,9 @@ alias q="exit"
 export USER_ID=$(id -u)
 export GROUP_ID=$(id -g)
 
-export PATH="$HOME/.local/bin:$PATH"
+export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 
-[[ -f ~/.kube/config ]] && export KUBECONFIG=~/.kube/config
+# KUBECONFIG and PATH live in ~/.zshenv so non-interactive shells get them too.
 [[ $commands[kubectl] ]] && source <(kubectl completion zsh)
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

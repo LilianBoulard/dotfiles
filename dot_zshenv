@@ -1,0 +1,13 @@
+# ~/.zshenv — sourced by EVERY zsh invocation, including non-interactive
+# shells (cron, scripts, headless "investigate" agent sessions). Environment
+# that tools need regardless of interactivity belongs here; interactive-only
+# config (prompt, completions, aliases) stays in ~/.zshrc / ~/.zshrc.local.
+
+export PATH="$HOME/.local/bin:$PATH"
+
+# kubectl: without this, non-interactive shells fall back to the root-only
+# /etc/rancher/k3s/k3s.yaml and fail with a permission error.
+[[ -f ~/.kube/config ]] && export KUBECONFIG=~/.kube/config
+
+# Machine-specific environment (e.g. Vault) lives here, untracked by chezmoi.
+[[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
