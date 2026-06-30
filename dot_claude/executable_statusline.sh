@@ -40,9 +40,7 @@ eval "$(echo "$input" | jq -r '
   @sh "model_version=\(.model.version // "")",
   @sh "context_window_size=\(.context_window.context_window_size // 200000)",
   @sh "total_cost_usd=\(.cost.total_cost_usd // "")",
-  @sh "total_duration_ms=\(.cost.total_duration_ms // "")",
-  @sh "total_input_tokens=\(.context_window.total_input_tokens // 0)",
-  @sh "total_output_tokens=\(.context_window.total_output_tokens // 0)"
+  @sh "total_duration_ms=\(.cost.total_duration_ms // "")"
 ' 2>/dev/null)"
 current_directory=$(echo "$current_directory" | sed "s|^$HOME|~|g")
 
@@ -80,30 +78,51 @@ if [ -n "$total_cost_usd" ] && [ -n "$total_duration_ms" ] && [ "$total_duration
   cost_per_hour=$(awk -v cost="$total_cost_usd" -v duration="$total_duration_ms" 'BEGIN {printf "%.2f", cost * 3600000 / duration}')
 fi
 
-combined_token_count=""
-tokens_per_minute=""
-if [ "$total_input_tokens" != "null" ] && [ "$total_output_tokens" != "null" ]; then
-  combined_token_count=$((total_input_tokens + total_output_tokens))
-  [ "$combined_token_count" -eq 0 ] && combined_token_count=""
+strip_ansi() { printf '%s' "$1" | sed $'s/\x1b\\[[0-9;]*m//g'; }
+
+truncate_text() {
+  local text="$1" max="$2"
+  ((max < 1)) && return
+  if [ "${#text}" -le "$max" ]; then printf '%s' "$text"; else printf '%s…' "${text:0:max-1}"; fi
+}
+
+truncate_text_end() {
+  local text="$1" max="$2"
+  ((max < 1)) && return
+  if [ "${#text}" -le "$max" ]; then printf '%s' "$text"; else printf '…%s' "${text: $(( -(max - 1) ))}"; fi
+}
+
+terminal_columns="${COLUMNS:-80}"
+[[ "$terminal_columns" =~ ^[0-9]+$ ]] && [ "$terminal_columns" -gt 0 ] || terminal_columns=80
+
+line_margin=3
+
+# Line 1: path and branch, truncated to fit
+branch_separator=""
+[ -n "$git_branch" ] && branch_separator=" · "
+left_available=$(( terminal_columns - line_margin - ${#branch_separator} ))
+((left_available < 0)) && left_available=0
+
+if [ $(( ${#current_directory} + ${#git_branch} )) -gt "$left_available" ]; then
+  half=$(( left_available / 2 ))
+  if [ "${#git_branch}" -le "$half" ]; then
+    dir_budget=$(( left_available - ${#git_branch} ))
+    branch_budget=${#git_branch}
+  elif [ "${#current_directory}" -le $(( left_available - half )) ]; then
+    dir_budget=${#current_directory}
+    branch_budget=$(( left_available - ${#current_directory} ))
+  else
+    dir_budget=$(( left_available - half ))
+    branch_budget=$half
+  fi
+  current_directory=$(truncate_text_end "$current_directory" "$dir_budget")
+  git_branch=$(truncate_text "$git_branch" "$branch_budget")
 fi
 
-if [ -n "$combined_token_count" ] && [ -n "$total_duration_ms" ] && [ "$total_duration_ms" -gt 0 ]; then
-  tokens_per_minute=$(awk -v tokens="$combined_token_count" -v duration="$total_duration_ms" 'BEGIN {printf "%.0f", tokens * 60000 / duration}')
-fi
-
-# Line 1: Core info (directory, git, model, version)
 printf '%s%s%s' "$directory_color" "$current_directory" "$reset_color"
 if [ -n "$git_branch" ]; then
-  printf ' · %s%s%s' "$git_color" "$git_branch" "${reset_color} branch"
+  printf ' · %s%s%s' "$git_color" "$git_branch" "$reset_color"
 fi
-printf ' · %s%s%s' "$model_color" "$model_name" "$reset_color"
-if [ -n "$model_version" ] && [ "$model_version" != "null" ]; then
-  printf ' · %s%s%s' "$version_color" "$model_version" "$reset_color"
-fi
-
-# Line 2: Context consumption
-context_progress_bar=$(progress_bar "$context_consumed_percent")
-context_line="${context_color}${context_consumed_percent}% [${context_progress_bar}]${reset_color}"
 
 # Line 3: Cost and usage analytics
 analytics_line=""
@@ -115,21 +134,33 @@ if [ -n "$total_cost_usd" ] && [[ "$total_cost_usd" =~ ^[0-9.]+$ ]]; then
   fi
 fi
 
-if [ -n "$combined_token_count" ] && [[ "$combined_token_count" =~ ^[0-9]+$ ]]; then
-  token_summary="${usage_color}${combined_token_count} tok"
-  if [ -n "$tokens_per_minute" ] && [[ "$tokens_per_minute" =~ ^[0-9.]+$ ]]; then
-    token_summary="${token_summary} (${tokens_per_minute} tpm)"
-  fi
-  token_summary="${token_summary}${reset_color}"
-
-  if [ -n "$analytics_line" ]; then
-    analytics_line="$analytics_line · $token_summary"
-  else
-    analytics_line="$token_summary"
-  fi
+model_summary="${model_color}${model_name}${reset_color}"
+if [ -n "$model_version" ] && [ "$model_version" != "null" ]; then
+  model_summary="${model_summary} · ${version_color}${model_version}${reset_color}"
 fi
+
+if [ -n "$analytics_line" ]; then
+  analytics_line="$analytics_line · $model_summary"
+else
+  analytics_line="$model_summary"
+fi
+
+# Line 2: Context consumption, bar sized to the terminal width
+# Visible overhead: "<pct>% []" plus the " · <analytics>" suffix sharing the line
+context_overhead=$(( ${#context_consumed_percent} + 4 ))
+analytics_suffix_width=0
+if [ -n "$analytics_line" ]; then
+  analytics_plain=$(strip_ansi "$analytics_line")
+  analytics_suffix_width=$(( ${#analytics_plain} + 3 ))
+fi
+
+bar_width=$(( terminal_columns - context_overhead - analytics_suffix_width - line_margin ))
+((bar_width < 10)) && bar_width=10
+
+context_progress_bar=$(progress_bar "$context_consumed_percent" "$bar_width")
+context_line="${context_color}${context_consumed_percent}% [${context_progress_bar}]${reset_color}"
 
 # Print lines
 printf '\n%s' "$context_line"
-[ -n "$analytics_line" ] && printf '\n%s' "$analytics_line"
+[ -n "$analytics_line" ] && printf ' · %s' "$analytics_line"
 printf '\n'
