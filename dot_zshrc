@@ -34,7 +34,6 @@ alias cc="claude --allow-dangerously-skip-permissions"
 alias c="clear"
 alias e="exit"
 alias g="git"
-alias ga="git add"
 alias gd="git diff"
 alias gs="git status"
 alias j="just"
@@ -43,11 +42,10 @@ alias kl="kubectl logs -f"
 alias kg="kubectl get"
 alias kgp="kubectl get pods"
 alias l="ls -lah"
+alias ga="gh auth switch"
 
 export USER_ID=$(id -u)
 export GROUP_ID=$(id -g)
-
-export CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1
 
 # KUBECONFIG and PATH live in ~/.zshenv so non-interactive shells get them too.
 [[ $commands[kubectl] ]] && source <(kubectl completion zsh)

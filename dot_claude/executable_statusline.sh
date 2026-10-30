@@ -64,9 +64,9 @@ if [ "$current_usage" != "null" ] && [ -n "$current_usage" ]; then
 fi
 
 if [ -z "$NO_COLOR" ]; then
-  if [ "$context_consumed_percent" -ge 80 ]; then
+  if [ "$context_consumed_percent" -ge 60 ]; then
     context_color=$'\033[38;5;203m'    # coral red
-  elif [ "$context_consumed_percent" -ge 60 ]; then
+  elif [ "$context_consumed_percent" -ge 25 ]; then
     context_color=$'\033[38;5;215m'    # peach
   else
     context_color=$'\033[38;5;158m'    # mint green
@@ -95,7 +95,7 @@ truncate_text_end() {
 terminal_columns="${COLUMNS:-80}"
 [[ "$terminal_columns" =~ ^[0-9]+$ ]] && [ "$terminal_columns" -gt 0 ] || terminal_columns=80
 
-line_margin=3
+line_margin=4
 
 # Line 1: path and branch, truncated to fit
 branch_separator=""

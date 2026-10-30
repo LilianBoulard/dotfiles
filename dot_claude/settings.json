@@ -6,23 +6,19 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "opus[1m]",
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "printf '\\a' > /dev/tty 2>/dev/null || true"
-          }
-        ]
-      }
-    ]
+  "model": "opus",
+  "worktree": {
+    "baseRef": "fresh"
   },
+  "enableArtifact": false,
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh",
     "padding": 0
+  },
+  "enabledPlugins": {
+    "lia@lia-dev-tooling": true,
+    "mattpocock-skills@mattpocock": true
   },
   "extraKnownMarketplaces": {
     "anthropic-agent-skills": {
@@ -30,14 +26,31 @@
         "source": "github",
         "repo": "anthropics/skills"
       }
+    },
+    "mattpocock": {
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills"
+      }
+    },
+    "lia-dev-tooling": {
+      "source": {
+        "source": "github",
+        "repo": "acoladgroup/lia-dev-tooling"
+      }
     }
   },
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "editorMode": "normal",
   "preferredNotifChannel": "auto",
+  "autoCompactEnabled": true,
+  "switchModelsOnFlag": true,
   "fileCheckpointingEnabled": true,
   "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": false,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "agentPushNotifEnabled": true
+  "idleCompaction": false
 }
